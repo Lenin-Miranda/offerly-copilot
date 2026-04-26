@@ -13,10 +13,18 @@
     "windows": [
       {
         "title": "Offerly",
-        "width": 800,
-        "height": 600
+        "width": 92,
+        "height": 92,
+        "center": true,
+        "resizable": false,
+        "decorations": false,
+        "transparent": true,
+        "backgroundColor": [0, 0, 0, 0],
+        "alwaysOnTop": true,
+        "shadow": false
       }
     ],
+    "macOSPrivateApi": true,
     "security": {
       "csp": null
     }

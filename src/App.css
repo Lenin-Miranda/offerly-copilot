@@ -34,6 +34,12 @@ body,
   min-height: 100%;
 }
 
+html.html--tauri-launcher,
+html.html--tauri-launcher body,
+html.html--tauri-launcher #root {
+  background: transparent !important;
+}
+
 body {
   margin: 0;
   min-width: 320px;
@@ -52,6 +58,20 @@ body {
     #ffffff;
 }
 
+body.body--tauri-launcher {
+  min-width: 0;
+  background: transparent;
+  overflow: hidden;
+}
+
+.html--tauri-launcher:root {
+  background: transparent;
+}
+
+.body--tauri-launcher #root {
+  background: transparent;
+}
+
 button,
 input,
 textarea {
@@ -65,6 +85,269 @@ button {
 .container {
   min-height: 100vh;
   padding: 56px 20px 72px;
+}
+
+.body--tauri-launcher .container {
+  padding: 0;
+}
+
+.launcher-shell {
+  width: 100%;
+  min-height: 100vh;
+}
+
+.launcher-shell--desktop {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: transparent;
+}
+
+.launcher-shell--opening,
+.launcher-shell--open,
+.launcher-shell--closing {
+  background:
+    radial-gradient(circle at top left, rgba(249, 233, 239, 0.9), transparent 22%),
+    radial-gradient(circle at top right, rgba(255, 244, 201, 0.82), transparent 24%),
+    rgba(255, 250, 252, 0.98);
+}
+
+.launcher-bubble {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 28px;
+  padding: 16px;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.55), transparent 58%),
+    linear-gradient(145deg, #f6dda1, #e7bac8);
+  color: #5e4950;
+  box-shadow: 0 16px 38px rgba(92, 70, 79, 0.22);
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease,
+    opacity 220ms ease;
+}
+
+.launcher-bubble-frame {
+  position: absolute;
+  inset: 6px;
+  transition:
+    opacity 180ms ease,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 2;
+}
+
+.launcher-shell--closed .launcher-bubble-frame {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+.launcher-shell--closed .launcher-bubble,
+.launcher-shell--closing .launcher-bubble {
+  padding: 0;
+  background: none;
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.launcher-shell--closing .launcher-bubble-frame {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: none;
+  transition-delay: 120ms;
+}
+
+.launcher-shell--opening .launcher-bubble-frame,
+.launcher-shell--open .launcher-bubble-frame {
+  opacity: 0;
+  transform: scale(0.82);
+  pointer-events: none;
+}
+
+.launcher-bubble:hover {
+  transform: translateY(-1px) scale(1.01);
+  box-shadow: 0 18px 42px rgba(92, 70, 79, 0.26);
+}
+
+.launcher-shell--closed .launcher-bubble:hover,
+.launcher-shell--closing .launcher-bubble:hover {
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: none;
+}
+
+.launcher-bubble__logo {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 18px rgba(92, 70, 79, 0.18));
+  transform-origin: center;
+  will-change: transform;
+  transition:
+    filter 220ms ease,
+    transform 220ms ease;
+}
+
+.launcher-shell--closed .launcher-bubble__logo,
+.launcher-shell--closing .launcher-bubble__logo {
+  filter: drop-shadow(0 10px 24px rgba(92, 70, 79, 0.22));
+  animation: offerly-logo-rotate 9s linear infinite;
+}
+
+.launcher-panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: 32px;
+  overflow: hidden;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: blur(20px);
+  transform-origin: top center;
+  transition:
+    opacity 220ms ease,
+    transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 220ms ease;
+}
+
+.launcher-shell--closed .launcher-panel {
+  opacity: 0;
+  transform: translateY(12px) scale(0.96);
+  filter: blur(10px);
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.launcher-shell--opening .launcher-panel,
+.launcher-shell--open .launcher-panel {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+  pointer-events: auto;
+  visibility: visible;
+}
+
+.launcher-shell--closing .launcher-panel {
+  opacity: 0.98;
+  transform: translateY(0) scale(0.995);
+  filter: blur(0);
+  pointer-events: none;
+  visibility: visible;
+}
+
+@keyframes offerly-logo-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.launcher-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(106, 84, 92, 0.08);
+  background: rgba(255, 255, 255, 0.72);
+  cursor: grab;
+  user-select: none;
+}
+
+.launcher-panel__header,
+.launcher-panel__scroll {
+  transition:
+    opacity 200ms ease,
+    transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 200ms ease;
+}
+
+.launcher-shell--closed .launcher-panel__header,
+.launcher-shell--closed .launcher-panel__scroll,
+.launcher-shell--closing .launcher-panel__header,
+.launcher-shell--closing .launcher-panel__scroll {
+  opacity: 0;
+  transform: translateY(10px);
+  filter: blur(6px);
+}
+
+.launcher-shell--opening .launcher-panel__header,
+.launcher-shell--opening .launcher-panel__scroll,
+.launcher-shell--open .launcher-panel__header,
+.launcher-shell--open .launcher-panel__scroll {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+.launcher-shell--opening .launcher-panel__header {
+  transition-delay: 70ms;
+}
+
+.launcher-shell--opening .launcher-panel__scroll {
+  transition-delay: 110ms;
+}
+
+.launcher-panel__title-group {
+  display: grid;
+  gap: 3px;
+}
+
+.launcher-panel__eyebrow {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #a56b7e;
+}
+
+.launcher-panel__collapse {
+  border: 0;
+  border-radius: 999px;
+  width: 46px;
+  height: 46px;
+  padding: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: inset 0 0 0 1px rgba(106, 84, 92, 0.08);
+}
+
+.launcher-panel__collapse-logo {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+.launcher-panel__header:active {
+  cursor: grabbing;
+}
+
+.launcher-panel__scroll {
+  flex: 1;
+  overflow: auto;
+  padding: 24px 22px 26px;
+}
+
+.launcher-panel .upload-shell {
+  width: 100%;
+  margin: 0;
+}
+
+.launcher-panel .hero-copy h1 {
+  font-size: clamp(2rem, 8vw, 3.2rem);
 }
 
 .upload-shell {
@@ -385,6 +668,17 @@ button {
 @media (max-width: 700px) {
   .container {
     padding: 32px 14px 40px;
+  }
+
+  .launcher-panel {
+    inset: 0;
+    border-radius: 26px;
+  }
+
+  .launcher-panel__header,
+  .launcher-panel__scroll {
+    padding-left: 16px;
+    padding-right: 16px;
   }
 
   .hero-copy h1 {
