@@ -110,6 +110,7 @@ button {
     radial-gradient(circle at top left, rgba(249, 233, 239, 0.9), transparent 22%),
     radial-gradient(circle at top right, rgba(255, 244, 201, 0.82), transparent 24%),
     rgba(255, 250, 252, 0.98);
+  border-radius: 40px;
 }
 
 .launcher-bubble {
@@ -205,7 +206,7 @@ button {
   inset: 0;
   display: flex;
   flex-direction: column;
-  border-radius: 32px;
+  border-radius: 40px;
   overflow: hidden;
   background: transparent;
   box-shadow: none;
@@ -357,6 +358,10 @@ button {
   gap: 22px;
 }
 
+.upload-shell--compact {
+  gap: 0;
+}
+
 .hero-copy {
   display: grid;
   gap: 12px;
@@ -441,6 +446,11 @@ button {
   padding: 24px;
 }
 
+.upload-card--compact {
+  gap: 16px;
+  padding: 18px;
+}
+
 .upload-card--single {
   max-width: 100%;
 }
@@ -448,6 +458,43 @@ button {
 .upload-card__header {
   display: grid;
   gap: 8px;
+}
+
+.compact-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.compact-header h2 {
+  margin: 8px 0 0;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.compact-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.compact-block {
+  display: grid;
+  gap: 10px;
+}
+
+.compact-block__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.compact-block__header p {
+  margin: 0;
+  font-size: 0.92rem;
 }
 
 .upload-card__tag {
@@ -483,6 +530,12 @@ button {
   cursor: pointer;
 }
 
+.dropzone--compact {
+  min-height: 148px;
+  padding: 18px;
+  gap: 8px;
+}
+
 .dropzone:hover,
 .dropzone--active {
   transform: translateY(-1px);
@@ -512,6 +565,11 @@ button {
   color: var(--ink);
 }
 
+.dropzone--compact .dropzone__title {
+  margin-top: 2px;
+  font-size: 1rem;
+}
+
 .dropzone__copy {
   max-width: 28ch;
 }
@@ -529,12 +587,20 @@ button {
   font-weight: 700;
 }
 
+.dropzone--compact .dropzone__button {
+  padding: 9px 14px;
+}
+
 .file-chip-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+.file-chip-row--compact {
+  align-items: stretch;
 }
 
 .file-chip {
@@ -636,6 +702,12 @@ button {
     box-shadow 160ms ease;
 }
 
+.job-textarea--compact {
+  min-height: 168px;
+  padding: 14px 16px;
+  border-radius: 18px;
+}
+
 .job-textarea:focus {
   border-color: #dca6b7;
   box-shadow: 0 0 0 4px rgba(232, 184, 199, 0.14);
@@ -651,6 +723,20 @@ button {
 
 .details-card__footer p {
   max-width: 54ch;
+}
+
+.compact-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.compact-actions__hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
 }
 
 .sr-only {
@@ -672,7 +758,7 @@ button {
 
   .launcher-panel {
     inset: 0;
-    border-radius: 26px;
+    border-radius: 30px;
   }
 
   .launcher-panel__header,
@@ -691,13 +777,20 @@ button {
     border-radius: 22px;
   }
 
+  .upload-card--compact {
+    padding: 16px;
+  }
+
   .dropzone {
     min-height: 220px;
     padding: 22px;
   }
 
   .details-card__header,
-  .details-card__footer {
+  .details-card__footer,
+  .compact-actions,
+  .compact-header,
+  .compact-block__header {
     flex-direction: column;
     align-items: stretch;
   }

@@ -110,10 +110,7 @@ export default function DragnDrop() {
             return;
           }
 
-          const progress = Math.min(
-            (now - startedAt) / WINDOW_ANIMATION_MS,
-            1,
-          );
+          const progress = Math.min((now - startedAt) / WINDOW_ANIMATION_MS, 1);
           const easedProgress = easeInOutCubic(progress);
           const width = Math.round(
             startSize.width +
@@ -185,7 +182,11 @@ export default function DragnDrop() {
   }, []);
 
   const openLauncher = () => {
-    if (!desktopShell || launcherStage === "opening" || launcherStage === "open") {
+    if (
+      !desktopShell ||
+      launcherStage === "opening" ||
+      launcherStage === "open"
+    ) {
       return;
     }
 
@@ -306,21 +307,18 @@ export default function DragnDrop() {
   };
 
   const intakeContent = (
-    <section className="upload-shell">
-      <div className="hero-copy">
-        <p className="eyebrow">Resume Match Workspace</p>
-        <h1>Upload your CV and paste the job post.</h1>
-        <p className="hero-copy__body">
-          A quiet intake screen for the first step: add your resume, paste the
-          role description, and get ready for the AI analysis next.
-        </p>
-      </div>
-
-      <article className="upload-card upload-card--single">
-        <div className="upload-card__header">
-          <span className="upload-card__tag">Required</span>
-          <h2>Resume / CV</h2>
-          <p>Drop a PDF or Word file with your latest resume.</p>
+    <section className="upload-shell upload-shell--compact">
+      <article className="upload-card upload-card--compact">
+        <div className="compact-header">
+          <div>
+            <p className="eyebrow">Quick Match</p>
+            <h2>Upload CV</h2>
+          </div>
+          <span
+            className={`status-pill ${isReady ? "status-pill--ready" : ""}`}
+          >
+            {isReady ? "Ready" : "Missing info"}
+          </span>
         </div>
 
         <input
@@ -331,71 +329,67 @@ export default function DragnDrop() {
           onChange={(event) => updateFile(event.target.files)}
         />
 
-        <label
-          className={`dropzone ${dragActive ? "dropzone--active" : ""}`}
-          htmlFor={resumeInputId}
-          onDragEnter={handleDrag}
-          onDragOver={handleDrag}
-          onDragLeave={handleDrag}
-          onDrop={handleDrop}
-        >
-          <span className="dropzone__badge">CV</span>
-          <p className="dropzone__title">Drop your resume here</p>
-          <p className="dropzone__copy">
-            or click to choose a file from your computer
-          </p>
-          <span className="dropzone__button">Choose resume</span>
-        </label>
+        <div className="compact-grid">
+          <div className="compact-block">
+            <div className="compact-block__header">
+              <span className="upload-card__tag">Resume</span>
+              <p>PDF, DOC or DOCX</p>
+            </div>
 
-        <div className="file-chip-row">
-          <div className="file-chip">
-            <span className="file-chip__label">Selected file</span>
-            <strong>
-              {getFileLabel(resumeFile, "No resume selected yet")}
-            </strong>
-          </div>
-          {resumeFile && (
-            <button
-              className="secondary-button"
-              type="button"
-              onClick={() => setResumeFile(null)}
+            <label
+              className={`dropzone dropzone--compact ${
+                dragActive ? "dropzone--active" : ""
+              }`}
+              htmlFor={resumeInputId}
+              onDragEnter={handleDrag}
+              onDragOver={handleDrag}
+              onDragLeave={handleDrag}
+              onDrop={handleDrop}
             >
-              Clear
-            </button>
-          )}
-        </div>
-      </article>
+              <span className="dropzone__badge">CV</span>
+              <p className="dropzone__title">Drop or choose file</p>
+              <span className="dropzone__button">Choose</span>
+            </label>
 
-      <article className="details-card">
-        <div className="details-card__header">
-          <div>
-            <p className="eyebrow eyebrow--compact">Paste Job Description</p>
-            <h2>Tell the AI what role you are targeting</h2>
+            <div className="file-chip-row file-chip-row--compact">
+              <div className="file-chip">
+                <span className="file-chip__label">File</span>
+                <strong>{getFileLabel(resumeFile, "Nothing selected")}</strong>
+              </div>
+              {resumeFile && (
+                <button
+                  className="secondary-button"
+                  type="button"
+                  onClick={() => setResumeFile(null)}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
           </div>
-          <span
-            className={`status-pill ${isReady ? "status-pill--ready" : ""}`}
-          >
-            {isReady
-              ? "Ready for AI analysis"
-              : "Waiting for resume + description"}
-          </span>
+
+          <div className="compact-block">
+            <div className="compact-block__header">
+              <span className="upload-card__tag">Job</span>
+              <p>Paste the role description</p>
+            </div>
+
+            <textarea
+              className="job-textarea job-textarea--compact"
+              placeholder="Paste the job description here..."
+              value={jobDescription}
+              onChange={(event) => setJobDescription(event.target.value)}
+              rows={7}
+            />
+          </div>
         </div>
 
-        <textarea
-          className="job-textarea"
-          placeholder="Paste the full job description here. Include responsibilities, required skills, and any must-have qualifications."
-          value={jobDescription}
-          onChange={(event) => setJobDescription(event.target.value)}
-          rows={10}
-        />
-
-        <div className="details-card__footer">
-          <p>
-            Next step: send the resume file plus this job description to your
-            API so the AI can score fit and suggest resume improvements.
+        <div className="compact-actions">
+          <p className="compact-actions__hint">
+            We compare the resume with the role.
           </p>
           <button className="primary-button" type="button" disabled={!isReady}>
-            Analyze candidate fit
+            Analyze
           </button>
         </div>
       </article>

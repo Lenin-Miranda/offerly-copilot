@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import OpenAI from 'openai';
 import { JobMatchDto } from './dto/job-match.dto';
+import { JobMatchResponse } from './analysis.types';
 
 @Injectable()
 export class AnalysisService {
   private openai: OpenAI = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
   });
-  async analyzeJobMatch(body: JobMatchDto) {
+  async analyzeJobMatch(body: JobMatchDto): Promise<JobMatchResponse> {
     const { resumeText, jobDescription } = body;
 
     const res = await this.openai.responses.create({
