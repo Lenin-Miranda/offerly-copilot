@@ -28,3 +28,7 @@ export interface ResumeStructure {
 export interface TailorResumeResponse {
   tailoredResume: string;
 }
+
+export interface ExtractResumeTextResponse {
+  resumeText: string;
+}

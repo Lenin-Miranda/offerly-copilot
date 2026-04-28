@@ -2,10 +2,17 @@ import { LogicalSize } from "@tauri-apps/api/dpi";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useEffect, useId, useRef, useState } from "react";
+import { analyzeJobMatch } from "../api/analysis.ts";
+import { extractResumeText } from "../api/resume.ts";
 import offerlyLogo from "../assets/offerly-logo.svg";
+import { logger } from "../lib/logger.ts";
+import { ExportButton } from "./ExportButton.tsx";
+import { TailorButton } from "./TailorButton.tsx";
 
-const COMPACT_SIZE = { width: 92, height: 92 };
-const EXPANDED_SIZE = { width: 560, height: 720 };
+const COMPACT_SIZE = { width: 50, height: 50 };
+const EXPANDED_WIDTH = 660;
+const BASE_EXPANDED_HEIGHT = 550;
+const FEEDBACK_EXPANDED_HEIGHT = 84;
 const WINDOW_ANIMATION_MS = 240;
 const PANEL_OPEN_MS = 220;
 const PANEL_CLOSE_LEAD_MS = 100;
@@ -45,7 +52,10 @@ export default function DragnDrop() {
   const openTimerRef = useRef<number | null>(null);
   const closeTimerRef = useRef<number | null>(null);
   const animationFrameRef = useRef<number | null>(null);
-  const windowSizeRef = useRef(desktopShell ? COMPACT_SIZE : EXPANDED_SIZE);
+  const windowSizeRef = useRef(desktopShell ? COMPACT_SIZE : {
+    width: EXPANDED_WIDTH,
+    height: BASE_EXPANDED_HEIGHT,
+  });
   const collapsedPressRef = useRef<{ x: number; y: number } | null>(null);
   const collapsedDragRef = useRef(false);
 
@@ -56,8 +66,73 @@ export default function DragnDrop() {
   const [dragActive, setDragActive] = useState(false);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [jobDescription, setJobDescription] = useState("");
+  const [hasAnalysis, setHasAnalysis] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [resumeText, setResumeText] = useState("");
+  const [tailoredResume, setTailoredResume] = useState("");
+  const [analysisFeedback, setAnalysisFeedback] = useState<{
+    tone: "success" | "error";
+    message: string;
+  } | null>(null);
+
+  const expandedHeight =
+    BASE_EXPANDED_HEIGHT +
+    (analysisFeedback === null ? 0 : FEEDBACK_EXPANDED_HEIGHT);
+  const expandedSize = {
+    width: EXPANDED_WIDTH,
+    height: expandedHeight,
+  };
 
   const isReady = resumeFile !== null && jobDescription.trim().length > 0;
+
+  const resetWorkflowState = () => {
+    setHasAnalysis(false);
+    setResumeText("");
+    setTailoredResume("");
+    setAnalysisFeedback(null);
+  };
+
+  const handleAnalyze = async () => {
+    if (!isReady || resumeFile === null || isAnalyzing) {
+      return;
+    }
+
+    setIsAnalyzing(true);
+    setTailoredResume("");
+    setAnalysisFeedback(null);
+
+    try {
+      const nextResumeText = await extractResumeText(resumeFile);
+      const res = await analyzeJobMatch({
+        resumeText: nextResumeText,
+        jobDescription,
+      });
+
+      setHasAnalysis(true);
+      setResumeText(nextResumeText);
+      setAnalysisFeedback({
+        tone: "success",
+        message: "Analysis ready. You can tailor the resume now.",
+      });
+      logger.info("Job analysis completed in launcher", {
+        matchScore: res.matchScore,
+      });
+
+      return res;
+    } catch (error) {
+      setHasAnalysis(false);
+      setAnalysisFeedback({
+        tone: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Analyze failed. Make sure the API is running on port 3000 and try again.",
+      });
+      logger.error("Error analyzing job match in launcher", { error });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   useEffect(() => {
     if (!desktopShell) {
@@ -71,7 +146,7 @@ export default function DragnDrop() {
     const syncWindow = async () => {
       const appWindow = getCurrentWindow();
       const appWebview = getCurrentWebview();
-      const nextSize = isExpanded ? EXPANDED_SIZE : COMPACT_SIZE;
+      const nextSize = isExpanded ? expandedSize : COMPACT_SIZE;
       const startSize = windowSizeRef.current;
       const logicalSize = new LogicalSize(nextSize.width, nextSize.height);
 
@@ -138,7 +213,7 @@ export default function DragnDrop() {
 
         animationFrameRef.current = requestAnimationFrame(animate);
       } catch (error) {
-        console.error("Unable to sync launcher window", error);
+        logger.error("Unable to sync launcher window", { error });
       }
     };
 
@@ -153,11 +228,12 @@ export default function DragnDrop() {
       document.documentElement.classList.remove("html--tauri-launcher");
       document.body.classList.remove("body--tauri-launcher");
     };
-  }, [desktopShell, isExpanded]);
+  }, [desktopShell, expandedHeight, isExpanded]);
 
   const updateFile = (files: FileList | null) => {
     const nextFile = files?.[0] ?? null;
     setResumeFile(nextFile);
+    resetWorkflowState();
   };
 
   const clearLauncherTimers = () => {
@@ -309,32 +385,17 @@ export default function DragnDrop() {
   const intakeContent = (
     <section className="upload-shell upload-shell--compact">
       <article className="upload-card upload-card--compact">
-        <div className="compact-header">
-          <div>
-            <p className="eyebrow">Quick Match</p>
-            <h2>Upload CV</h2>
-          </div>
-          <span
-            className={`status-pill ${isReady ? "status-pill--ready" : ""}`}
-          >
-            {isReady ? "Ready" : "Missing info"}
-          </span>
-        </div>
-
         <input
           id={resumeInputId}
           className="sr-only"
           type="file"
-          accept=".pdf,.doc,.docx"
+          accept=".pdf,.docx,.txt"
           onChange={(event) => updateFile(event.target.files)}
         />
 
         <div className="compact-grid">
           <div className="compact-block">
-            <div className="compact-block__header">
-              <span className="upload-card__tag">Resume</span>
-              <p>PDF, DOC or DOCX</p>
-            </div>
+            <span className="upload-card__tag">Resume</span>
 
             <label
               className={`dropzone dropzone--compact ${
@@ -346,21 +407,23 @@ export default function DragnDrop() {
               onDragLeave={handleDrag}
               onDrop={handleDrop}
             >
-              <span className="dropzone__badge">CV</span>
-              <p className="dropzone__title">Drop or choose file</p>
+              <p className="dropzone__title">Drop CV here</p>
+              <span className="dropzone__hint">PDF, DOCX or TXT</span>
               <span className="dropzone__button">Choose</span>
             </label>
 
-            <div className="file-chip-row file-chip-row--compact">
-              <div className="file-chip">
-                <span className="file-chip__label">File</span>
-                <strong>{getFileLabel(resumeFile, "Nothing selected")}</strong>
-              </div>
+            <div className="compact-meta">
+              <strong className="compact-meta__text">
+                {getFileLabel(resumeFile, "No file selected")}
+              </strong>
               {resumeFile && (
                 <button
-                  className="secondary-button"
+                  className="compact-meta__action"
                   type="button"
-                  onClick={() => setResumeFile(null)}
+                  onClick={() => {
+                    setResumeFile(null);
+                    resetWorkflowState();
+                  }}
                 >
                   Clear
                 </button>
@@ -369,29 +432,41 @@ export default function DragnDrop() {
           </div>
 
           <div className="compact-block">
-            <div className="compact-block__header">
-              <span className="upload-card__tag">Job</span>
-              <p>Paste the role description</p>
-            </div>
+            <span className="upload-card__tag">Job</span>
 
             <textarea
               className="job-textarea job-textarea--compact"
-              placeholder="Paste the job description here..."
+              placeholder="Paste role description..."
               value={jobDescription}
-              onChange={(event) => setJobDescription(event.target.value)}
-              rows={7}
+              onChange={(event) => {
+                setJobDescription(event.target.value);
+                resetWorkflowState();
+              }}
+              rows={5}
             />
           </div>
         </div>
 
-        <div className="compact-actions">
-          <p className="compact-actions__hint">
-            We compare the resume with the role.
+        <button
+          className="primary-button compact-primary-button"
+          type="button"
+          disabled={!isReady || isAnalyzing}
+          onClick={handleAnalyze}
+        >
+          {isAnalyzing ? "Analyzing..." : "Analyze"}
+        </button>
+
+        {analysisFeedback && (
+          <p
+            className={`status-pill status-pill--inline ${
+              analysisFeedback.tone === "success"
+                ? "status-pill--ready"
+                : "status-pill--error"
+            }`}
+          >
+            {analysisFeedback.message}
           </p>
-          <button className="primary-button" type="button" disabled={!isReady}>
-            Analyze
-          </button>
-        </div>
+        )}
       </article>
     </section>
   );
@@ -438,6 +513,28 @@ export default function DragnDrop() {
             <span className="launcher-panel__eyebrow">Offerly Copilot</span>
             <strong>Candidate Analyzer</strong>
           </div>
+          {(hasAnalysis || tailoredResume) && (
+            <div className="launcher-panel__actions">
+              <TailorButton
+                resumeFile={resumeFile}
+                resumeText={resumeText}
+                jobDescription={jobDescription}
+                disabled={!hasAnalysis}
+                onTailored={(nextResume) => {
+                  setTailoredResume(nextResume);
+                }}
+              />
+              {tailoredResume && (
+                <ExportButton
+                  content={tailoredResume}
+                  fileName={
+                    resumeFile?.name.replace(/\.[^.]+$/, "") ??
+                    "tailored-resume"
+                  }
+                />
+              )}
+            </div>
+          )}
 
           <button
             className="launcher-panel__collapse"

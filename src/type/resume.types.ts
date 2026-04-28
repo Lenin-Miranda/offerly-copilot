@@ -20,6 +20,10 @@ export interface TailorResumeResponse {
   tailoredResume: string;
 }
 
+export interface ExtractResumeTextResponse {
+  resumeText: string;
+}
+
 export interface TailorResumeRequest {
   resumeText: string;
   resumeStructure: ResumeStructure;

@@ -17,6 +17,20 @@ export default defineConfig(async () => ({
     port: 1420,
     strictPort: true,
     host: host || false,
+    proxy: {
+      "/analysis": {
+        target: "http://127.0.0.1:3000",
+        changeOrigin: true,
+      },
+      "/resume": {
+        target: "http://127.0.0.1:3000",
+        changeOrigin: true,
+      },
+      "/export": {
+        target: "http://127.0.0.1:3000",
+        changeOrigin: true,
+      },
+    },
     hmr: host
       ? {
           protocol: "ws",

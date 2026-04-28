@@ -18,6 +18,15 @@ export async function analyzeJobMatch(
     return data;
   } catch (error) {
     logger.error("Error analyzing job match", { error });
+    if (axios.isAxiosError(error)) {
+      const serverMessage =
+        typeof error.response?.data?.message === "string"
+          ? error.response.data.message
+          : error.message;
+
+      throw new Error(serverMessage || "Failed to analyze job match");
+    }
+
     throw new Error("Failed to analyze job match");
   }
 }
